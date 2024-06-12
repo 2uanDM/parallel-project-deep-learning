@@ -1,0 +1,8 @@
+gradio
+fastapi
+requests
+pydantic
+uvicorn
+sse-starlette
+requests-html
+lxml_html_clean
