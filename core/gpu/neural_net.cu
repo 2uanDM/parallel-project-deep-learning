@@ -372,12 +372,12 @@ void train(NeuralNet *nn, double *x_train, double *y_train, int epochs,
                          gpu_a1, gpu_z2, gpu_a2, gpu_w1, gpu_b1, gpu_w2,
                          gpu_b2) *
                100.0);
-
-    // Save weights every epoch
-    char filename[100];
-    sprintf(filename, "core/gpu/weights/epoch_%d.pth", epoch);
-    save_weights(nn, filename);
   }
+
+  // Save weights every epoch
+  char filename[100];
+  sprintf(filename, "core/gpu/weights/last.pth");
+  save_weights(nn, filename);
 
   cudaFree(gpu_input);
   cudaFree(gpu_z1);

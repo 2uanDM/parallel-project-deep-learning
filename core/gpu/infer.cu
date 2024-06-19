@@ -23,51 +23,47 @@ int main() {
   NeuralNet nn;
   init_nn(&nn, FLATTENED_SIZE, 128,
           1); // Initialize the neural network structure
-  load_weights(&nn,
-               "/home/quan/workspace/cuda-gcc/core/gpu/weights/epoch_99.pth");
+  load_weights(&nn, "/home/quan/workspace/cuda-gcc/core/gpu/weights/last.pth");
 
   // Assuming you have an image data loaded into `image_data`
   double *image_data; // This should be your input image data
-  double output[1];   // Assuming binary classification for simplicity
+  double *output = (double *)malloc(nn.output_size * sizeof(double));
 
   // Allocate memory for image_data and preprocess your image to fit the model
   image_data = (double *)malloc(FLATTENED_SIZE * sizeof(double));
 
-  //   // Print the neural network weights
-  //   printf("w1: ");
-  //   for (int i = 0; i < nn.input_size * nn.hidden_size; i++) {
-  //     printf("%f ", nn.w1[i]);
-  //   }
-  //   printf("\n");
-
-  //   printf("b1: ");
-  //   for (int i = 0; i < nn.hidden_size; i++) {
-  //     printf("%f ", nn.b1[i]);
-  //   }
-  //   printf("\n");
-
-  //   printf("w2: ");
-  //   for (int i = 0; i < nn.hidden_size * nn.output_size; i++) {
-  //     printf("%f ", nn.w2[i]);
-  //   }
-  //   printf("\n");
-
-  //   printf("b2: ");
-  //   for (int i = 0; i < nn.output_size; i++) {
-  //     printf("%f ", nn.b2[i]);
-  //   }
-  //   printf("\n");
-
   // Given have a cat.txt files which container 64 x 64 x 3 image data that has
   // been flattened, image_data would be loaded from the file
-  //   read_csv("image/flatten/dog.txt", image_data, 1, FLATTENED_SIZE);
-  read_csv("catfinal/test_images_float32.csv", image_data, 1, FLATTENED_SIZE);
+  read_csv("image/flatten/dog.txt", image_data, 1, FLATTENED_SIZE);
+
+  // Normalize the data
+  for (int i = 0; i < 10 * FLATTENED_SIZE; i++) {
+    image_data[i] /= 255.0;
+  }
 
   // Perform inference
   double *gpu_input, *gpu_z1, *gpu_a1, *gpu_z2, *gpu_a2, *gpu_w1, *gpu_b1,
       *gpu_w2, *gpu_b2;
   // You need to allocate memory for these GPU variables and copy data from CPU
   // to GPU as needed
+  // cudaMalloc(&gpu_z1, nn.hidden_size * sizeof(double));
+  // cudaMalloc(&gpu_a1, nn.hidden_size * sizeof(double));
+  // cudaMalloc(&gpu_z2, nn.output_size * sizeof(double));
+  // cudaMalloc(&gpu_a2, nn.output_size * sizeof(double));
+  // cudaMalloc(&gpu_w1, nn.input_size * nn.hidden_size * sizeof(double));
+  // cudaMalloc(&gpu_b1, nn.hidden_size * sizeof(double));
+  // cudaMalloc(&gpu_w2, nn.hidden_size * nn.output_size * sizeof(double));
+  // cudaMalloc(&gpu_b2, nn.output_size * sizeof(double));
+
+  // cudaMemcpy(gpu_w1, nn.w1, nn.input_size * nn.hidden_size * sizeof(double),
+  //            cudaMemcpyHostToDevice);
+  // cudaMemcpy(gpu_b1, nn.b1, nn.hidden_size * sizeof(double),
+  //            cudaMemcpyHostToDevice);
+  // cudaMemcpy(gpu_w2, nn.w2, nn.hidden_size * nn.output_size * sizeof(double),
+  //            cudaMemcpyHostToDevice);
+  // cudaMemcpy(gpu_b2, nn.b2, nn.output_size * sizeof(double),
+  //            cudaMemcpyHostToDevice);
+
   predict(&nn, image_data, output, gpu_input, gpu_z1, gpu_a1, gpu_z2, gpu_a2,
           gpu_w1, gpu_b1, gpu_w2, gpu_b2);
 
