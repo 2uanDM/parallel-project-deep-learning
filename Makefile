@@ -6,6 +6,10 @@ train-cpu: ./core/cpu/main.c
 		gcc -o core/cpu/build/main core/cpu/main.c -lm
 		./core/cpu/build/main
 
+train-gpu: ./core/gpu/main.cu
+		nvcc -o core/gpu/build/main core/gpu/main.cu -fmad=false
+		./core/gpu/build/main
+
 install:
 		sudo apt-get install libconfig-dev
 		rm -r -f .venv || true

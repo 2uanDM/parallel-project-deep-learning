@@ -3,7 +3,7 @@ import requests
 from requests_html import HTMLSession
 import time
 
-API_URL = "http://localhost:8000"
+API_URL = "https://api.quandm.site/"
 
 st.title("WandB Simulation with Real-Time Updates")
 
