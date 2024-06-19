@@ -236,6 +236,34 @@ double test_accuracy(NeuralNet *nn, double *x_test, double *y_test,
   return (double)correct / data_size;
 }
 
+// Save weights (last and best) with error checking
+void save_weights(NeuralNet *nn, const char *filename) {
+  // Check if neural network pointers are initialized
+  if (!nn || !nn->w1 || !nn->b1 || !nn->w2 || !nn->b2) {
+    fprintf(stderr, "Error: Uninitialized neural network weights or biases.\n");
+    return;
+  }
+
+  FILE *file = fopen(filename, "wb");
+  if (!file) {
+    fprintf(stderr, "Error: Unable to open file %s for writing.\n", filename);
+    return;
+  }
+
+  if (fwrite(nn->w1, sizeof(double), nn->input_size * nn->hidden_size, file) <
+          nn->input_size * nn->hidden_size ||
+      fwrite(nn->b1, sizeof(double), nn->hidden_size, file) < nn->hidden_size ||
+      fwrite(nn->w2, sizeof(double), nn->hidden_size * nn->output_size, file) <
+          nn->hidden_size * nn->output_size ||
+      fwrite(nn->b2, sizeof(double), nn->output_size, file) < nn->output_size) {
+    fprintf(stderr, "Error: Failed to write all data to file %s.\n", filename);
+    fclose(file); // Ensure the file is closed even on error
+    return;
+  }
+
+  fclose(file);
+}
+
 // Train the network
 void train(NeuralNet *nn, double *x_train, double *y_train, int epochs,
            double learning_rate, int batch_size, int train_data_size,
@@ -344,6 +372,11 @@ void train(NeuralNet *nn, double *x_train, double *y_train, int epochs,
                          gpu_a1, gpu_z2, gpu_a2, gpu_w1, gpu_b1, gpu_w2,
                          gpu_b2) *
                100.0);
+
+    // Save weights every epoch
+    char filename[100];
+    sprintf(filename, "core/gpu/weights/epoch_%d.pth", epoch);
+    save_weights(nn, filename);
   }
 
   cudaFree(gpu_input);
