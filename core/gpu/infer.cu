@@ -25,15 +25,12 @@ int main() {
           1); // Initialize the neural network structure
   load_weights(&nn, "/home/quan/workspace/cuda-gcc/core/gpu/weights/last.pth");
 
-  // Assuming you have an image data loaded into `image_data`
-  double *image_data; // This should be your input image data
+  double *image_data;
   double *output = (double *)malloc(nn.output_size * sizeof(double));
 
   // Allocate memory for image_data and preprocess your image to fit the model
   image_data = (double *)malloc(FLATTENED_SIZE * sizeof(double));
 
-  // Given have a cat.txt files which container 64 x 64 x 3 image data that has
-  // been flattened, image_data would be loaded from the file
   read_csv("image/flatten/dog.txt", image_data, 1, FLATTENED_SIZE);
 
   // Normalize the data
@@ -41,15 +38,20 @@ int main() {
     image_data[i] /= 255.0;
   }
 
+  for (int i = 0; i < 10 * FLATTENED_SIZE; i++) {
+    printf("%f ", image_data[i]);
+  }
+
   // Perform inference
   double *gpu_input, *gpu_z1, *gpu_a1, *gpu_z2, *gpu_a2, *gpu_w1, *gpu_b1,
       *gpu_w2, *gpu_b2;
   // You need to allocate memory for these GPU variables and copy data from CPU
   // to GPU as needed
-  // cudaMalloc(&gpu_z1, nn.hidden_size * sizeof(double));
-  // cudaMalloc(&gpu_a1, nn.hidden_size * sizeof(double));
-  // cudaMalloc(&gpu_z2, nn.output_size * sizeof(double));
-  // cudaMalloc(&gpu_a2, nn.output_size * sizeof(double));
+  // cudaMalloc(&gpu_input, BATCH_SIZE * nn.input_size * sizeof(double));
+  // cudaMalloc(&gpu_z1, BATCH_SIZE * nn.hidden_size * sizeof(double));
+  // cudaMalloc(&gpu_a1, BATCH_SIZE * nn.hidden_size * sizeof(double));
+  // cudaMalloc(&gpu_z2, BATCH_SIZE * nn.output_size * sizeof(double));
+  // cudaMalloc(&gpu_a2, BATCH_SIZE * nn.output_size * sizeof(double));
   // cudaMalloc(&gpu_w1, nn.input_size * nn.hidden_size * sizeof(double));
   // cudaMalloc(&gpu_b1, nn.hidden_size * sizeof(double));
   // cudaMalloc(&gpu_w2, nn.hidden_size * nn.output_size * sizeof(double));

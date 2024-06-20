@@ -374,10 +374,25 @@ void train(NeuralNet *nn, double *x_train, double *y_train, int epochs,
                100.0);
   }
 
-  // Save weights every epoch
-  char filename[100];
-  sprintf(filename, "core/gpu/weights/last.pth");
-  save_weights(nn, filename);
+  // // Save weights every epoch
+  // char filename[100];
+  // sprintf(filename, "core/gpu/weights/last.pth");
+  // save_weights(nn, filename);
+
+  // Try to infer
+  double *image_data;
+  image_data = (double *)malloc(FLATTENED_SIZE * sizeof(double));
+  read_csv("image/flatten/dog.txt", image_data, 1, FLATTENED_SIZE);
+
+  for (int i = 0; i < 10 * FLATTENED_SIZE; i++) {
+    image_data[i] /= 255.0;
+  }
+
+  double *output = (double *)malloc(nn->output_size * sizeof(double));
+  predict(nn, image_data, output, gpu_input, gpu_z1, gpu_a1, gpu_z2, gpu_a2,
+          gpu_w1, gpu_b1, gpu_w2, gpu_b2);
+
+  printf("Predicted of dog images: %f\n", output[0]);
 
   cudaFree(gpu_input);
   cudaFree(gpu_z1);
