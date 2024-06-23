@@ -18,4 +18,4 @@ def flatten_image(image_path, output_path):
 
 
 if __name__ == '__main__':
-    flatten_image('image/original/dog.jpg', 'image/flatten/dog.txt')
+    flatten_image('image/original/cat2.jpg', 'image/flatten/cat2.txt')

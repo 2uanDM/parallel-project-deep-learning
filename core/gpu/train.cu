@@ -33,7 +33,7 @@ int main() {
   NeuralNet nn;
   init_nn(&nn, input_size, hidden_size, output_size);
 
-  train(&nn, train_data, train_labels, 100, 0.01, BATCH_SIZE, NUM_TRAIN_IMAGES,
+  train(&nn, train_data, train_labels, 70, 0.01, BATCH_SIZE, NUM_TRAIN_IMAGES,
         test_data, test_labels, NUM_TEST_IMAGES);
 
   free_nn(&nn);

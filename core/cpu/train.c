@@ -236,6 +236,7 @@ void train(NeuralNetwork *nn, double *x_train, double *y_train, int epochs,
   double *batch_dw2 =
       (double *)malloc(nn->hidden_size * nn->output_size * sizeof(double));
   double *batch_db2 = (double *)malloc(nn->output_size * sizeof(double));
+  double time_elapsed = 0.0;
 
   if (!dw1 || !db1 || !dw2 || !db2) {
     perror("Error allocating memory for gradients");
@@ -244,6 +245,7 @@ void train(NeuralNetwork *nn, double *x_train, double *y_train, int epochs,
 
   double min_loss = DBL_MAX;
   for (int epoch = 0; epoch < epochs; epoch++) {
+    double start_time = clock();
     double epoch_loss = 0.0;
     int num_batches =
         (train_data_size + batch_size - 1) / batch_size; // Ceiling division
@@ -289,8 +291,12 @@ void train(NeuralNetwork *nn, double *x_train, double *y_train, int epochs,
     }
 
     epoch_loss /= train_data_size;
-    printf("Epoch %d, Loss: %.8f Accuracy: %.2f%%\n", epoch + 1, epoch_loss,
-           test_accuracy(nn, x_test, y_test, NUM_TEST_IMAGES) * 100.0);
+    double end_time = clock();
+    time_elapsed += (end_time - start_time) / CLOCKS_PER_SEC;
+    printf("Epoch %d, Loss: %.8f Accuracy: %.2f%% Time elapse: %.4f\n",
+           epoch + 1, epoch_loss,
+           test_accuracy(nn, x_test, y_test, NUM_TEST_IMAGES) * 100.0,
+           time_elapsed);
 
     if (epoch_loss < min_loss) {
       min_loss = epoch_loss;
@@ -379,7 +385,7 @@ int main() {
     exit(EXIT_FAILURE);
   }
 
-  train(&nn, train_data, train_labels, 5, 0.01, BATCH_SIZE, NUM_TRAIN_IMAGES,
+  train(&nn, train_data, train_labels, 100, 0.01, BATCH_SIZE, NUM_TRAIN_IMAGES,
         &best_w1, &best_b1, &best_w2, &best_b2, test_data, test_labels,
         NUM_TEST_IMAGES);
 

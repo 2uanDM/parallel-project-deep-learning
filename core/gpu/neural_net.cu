@@ -3,6 +3,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 #define NUM_TRAIN_IMAGES 200
 #define NUM_TEST_IMAGES 50
@@ -209,6 +210,23 @@ void predict(NeuralNet *nn, double *input, double *output, double *gpu_input,
              cudaMemcpyDeviceToHost);
 }
 
+double infer_with_probs(NeuralNet *nn, double *input, double *gpu_input,
+                        double *gpu_z1, double *gpu_a1, double *gpu_z2,
+                        double *gpu_a2, double *gpu_w1, double *gpu_b1,
+                        double *gpu_w2, double *gpu_b2) {
+
+  double *output = (double *)malloc(nn->output_size * sizeof(double));
+
+  // Copy input to GPU
+  cudaMemcpy(gpu_input, input, nn->input_size * sizeof(double),
+             cudaMemcpyHostToDevice);
+
+  predict(nn, input, output, gpu_input, gpu_z1, gpu_a1, gpu_z2, gpu_a2, gpu_w1,
+          gpu_b1, gpu_w2, gpu_b2);
+
+  return output[0];
+}
+
 // Test accuracy
 double test_accuracy(NeuralNet *nn, double *x_test, double *y_test,
                      int data_size, double *gpu_input, double *gpu_z1,
@@ -312,8 +330,10 @@ void train(NeuralNet *nn, double *x_train, double *y_train, int epochs,
 
   dim3 gridSize(16, 16);
   dim3 blockSize(16, 16);
+  double time_elapsed = 0.0;
 
   for (int epoch = 0; epoch < epochs; epoch++) {
+    double start_time = clock();
     epoch_loss = 0.0;
     cudaMemcpy(gpu_epoch_loss, &epoch_loss, sizeof(double),
                cudaMemcpyHostToDevice);
@@ -366,12 +386,15 @@ void train(NeuralNet *nn, double *x_train, double *y_train, int epochs,
                cudaMemcpyDeviceToHost);
 
     epoch_loss /= NUM_TRAIN_IMAGES;
-
-    printf("Epoch %d, Loss: %.8f Accuracy: %.2f%%\n", epoch + 1, epoch_loss,
+    double end_time = clock();
+    time_elapsed += (end_time - start_time) / CLOCKS_PER_SEC;
+    printf("Epoch %d, Loss: %.8f Accuracy: %.2f%% Time elapse: %.4f\n",
+           epoch + 1, epoch_loss,
            test_accuracy(nn, x_test, y_test, NUM_TEST_IMAGES, gpu_input, gpu_z1,
                          gpu_a1, gpu_z2, gpu_a2, gpu_w1, gpu_b1, gpu_w2,
                          gpu_b2) *
-               100.0);
+               100.0,
+           time_elapsed);
   }
 
   // // Save weights every epoch
@@ -384,15 +407,16 @@ void train(NeuralNet *nn, double *x_train, double *y_train, int epochs,
   image_data = (double *)malloc(FLATTENED_SIZE * sizeof(double));
   read_csv("image/flatten/dog.txt", image_data, 1, FLATTENED_SIZE);
 
-  for (int i = 0; i < 10 * FLATTENED_SIZE; i++) {
+  for (int i = 0; i < FLATTENED_SIZE; i++) {
     image_data[i] /= 255.0;
   }
 
-  double *output = (double *)malloc(nn->output_size * sizeof(double));
-  predict(nn, image_data, output, gpu_input, gpu_z1, gpu_a1, gpu_z2, gpu_a2,
-          gpu_w1, gpu_b1, gpu_w2, gpu_b2);
-
-  printf("Predicted of dog images: %f\n", output[0]);
+  for (int i = 0; i < 5; i++) {
+    double result =
+        infer_with_probs(nn, image_data, gpu_input, gpu_z1, gpu_a1, gpu_z2,
+                         gpu_a2, gpu_w1, gpu_b1, gpu_w2, gpu_b2);
+    printf("Predicted of dog.jpg images at %d time: %f\n", i, result);
+  }
 
   cudaFree(gpu_input);
   cudaFree(gpu_z1);
